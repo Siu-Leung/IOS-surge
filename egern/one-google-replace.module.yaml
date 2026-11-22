@@ -1,0 +1,54 @@
+#!name=one.google.com 响应域名替换
+#!desc=拦截 one.google.com 的 POST 响应，替换响应体中的两组域名（30tb.ai.pro.m→30tb.m、20tb.m.v2→20tb.m）
+#!author=Minis
+#!homepage=https://egernapp.com
+#!icon=arrow.triangle.2.circlepath
+
+name: one.google.com 响应域名替换
+description: 拦截 one.google.com 的 POST 响应，替换响应体中的两组域名
+author: Minis
+homepage: https://egernapp.com
+icon: arrow.triangle.2.circlepath
+
+compat_arguments:
+  SCRIPT_URL: "https://raw.githubusercontent.com/Siu-Leung/IOS-surge/egern/egern/replace-domains.js"
+  ONLY_POST: "true"
+  STRICT_BOUNDARY: "false"
+  PAIRS: "30tb.ai.pro.m=>30tb.m;20tb.m.v2=>20tb.m"
+
+compat_arguments_desc: |
+  SCRIPT_URL：脚本地址。默认使用仓库的 GitHub Raw 链接，无需修改。
+  ONLY_POST：true=只处理 POST（默认），false=所有请求方法
+  STRICT_BOUNDARY：true=按域名边界替换（不误伤 20tb.m.v3 之类变体）；false=纯字符串替换（Surge 原语义，默认）
+  PAIRS：替换对，格式 旧=>新，多组用 ; 分隔；留空用脚本内置默认值
+
+env_schema:
+  ONLY_POST:
+    name: 只处理 POST
+    description: 关闭后所有请求方法都会处理
+    options: ["true", "false"]
+  STRICT_BOUNDARY:
+    name: 域名边界替换
+    description: 开启后不会把更长的变体域名里的片段替换掉
+    options: ["false", "true"]
+  PAIRS:
+    name: 替换对
+    description: 旧域名=>新域名，多组用分号分隔
+    default_value: "30tb.ai.pro.m=>30tb.m;20tb.m.v2=>20tb.m"
+
+mitm:
+  hostnames:
+    - one.google.com
+
+scriptings:
+  - http_response:
+      name: "one.google.com 域名替换"
+      match: "^https://one\\.google\\.com/.*"
+      script_url: "{{{SCRIPT_URL}}}"
+      body_required: true
+      max_size: 10485760
+      timeout: 20
+      env:
+        ONLY_POST: "{{{ONLY_POST}}}"
+        STRICT_BOUNDARY: "{{{STRICT_BOUNDARY}}}"
+        PAIRS: "{{{PAIRS}}}"
